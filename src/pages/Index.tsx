@@ -58,14 +58,14 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden">
       {/* Animated Background Elements */}
-      <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute top-40 right-20 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl floating" style={{ animationDelay: '2s' }}></div>
-      <div className="absolute bottom-20 left-40 w-80 h-80 bg-purple-300/20 rounded-full blur-3xl floating" style={{ animationDelay: '4s' }}></div>
+      <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute top-40 right-20 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl floating" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute bottom-20 left-40 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl floating" style={{ animationDelay: '4s' }}></div>
       
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/20">
+      <nav className="fixed top-0 w-full z-50 bg-white/10 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-3">
@@ -79,13 +79,13 @@ const Index = () => {
               <Button 
                 variant="ghost" 
                 onClick={() => navigate('/login')}
-                className="text-white hover:text-blue-100 hover:bg-white/10 border border-white/20 glass-button"
+                className="text-white hover:text-white hover:bg-white/20 border border-white/20 backdrop-blur-sm"
               >
                 Login
               </Button>
               <Button 
                 onClick={() => navigate('/signup')}
-                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
               >
                 Sign Up
               </Button>
@@ -100,7 +100,7 @@ const Index = () => {
         {/* Left Side - Hero Content */}
         <div className="space-y-8 animate-fade-in">
           <div className="space-y-6">
-            <Badge className="bg-white/20 text-white border-white/30 px-6 py-3 text-lg backdrop-blur-sm">
+            <Badge className="bg-blue-500/20 text-blue-200 border-blue-400/30 px-6 py-3 text-lg backdrop-blur-sm">
               <Crown className="w-5 h-5 mr-2" />
               Trusted by 1000+ contractors
             </Badge>
@@ -108,12 +108,12 @@ const Index = () => {
             <h1 className="text-6xl lg:text-7xl font-bold text-white leading-tight">
               Transform Your
               <br />
-              <span className="bg-gradient-to-r from-cyan-300 to-white bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
                 Service Business
               </span>
             </h1>
             
-            <p className="text-xl text-blue-100 leading-relaxed max-w-lg">
+            <p className="text-xl text-slate-300 leading-relaxed max-w-lg">
               Generate professional quotes instantly with AI, manage customers effortlessly, 
               and grow your fencing business like never before.
             </p>
@@ -123,7 +123,7 @@ const Index = () => {
             <Button 
               size="lg" 
               onClick={() => navigate('/signup')}
-              className="bg-white text-blue-600 hover:bg-blue-50 px-10 py-4 text-lg font-semibold shadow-2xl hover:shadow-white/25 hover:scale-105 transition-all duration-300 group"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-4 text-lg font-semibold shadow-2xl hover:shadow-blue-500/25 hover:scale-105 transition-all duration-300 group"
             >
               Get Started Free
               <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" />
@@ -132,7 +132,7 @@ const Index = () => {
             <Button 
               size="lg" 
               variant="outline"
-              className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-4 text-lg backdrop-blur-sm glass-button group"
+              className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-4 text-lg backdrop-blur-sm group"
             >
               <PlayCircle className="mr-3 w-6 h-6" />
               Watch Demo
@@ -140,22 +140,26 @@ const Index = () => {
           </div>
 
           {/* Stats Row */}
-          <div className="flex flex-wrap gap-6 pt-8">
+          <div className="grid grid-cols-2 gap-6 pt-8">
             {stats.map((stat, index) => (
               <div 
                 key={index}
-                className="flex items-center space-x-3 group cursor-pointer"
+                className="group cursor-pointer"
                 onMouseEnter={() => setHoveredStat(index)}
                 onMouseLeave={() => setHoveredStat(null)}
               >
-                <div className={`w-12 h-12 rounded-full bg-white/20 flex items-center justify-center transition-all duration-300 ${
-                  hoveredStat === index ? 'scale-110 bg-white/30' : ''
+                <div className={`bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 transition-all duration-300 ${
+                  hoveredStat === index ? 'scale-105 bg-white/20' : ''
                 }`}>
-                  <stat.icon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">{stat.number}</div>
-                  <div className="text-sm text-blue-200">{stat.label}</div>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                      <stat.icon className="w-6 h-6 text-blue-300" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-white">{stat.number}</div>
+                      <div className="text-sm text-slate-300">{stat.label}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -175,7 +179,7 @@ const Index = () => {
             {features.map((feature, index) => (
               <Card 
                 key={index}
-                className="glass p-8 hover:bg-white/20 transition-all duration-500 cursor-pointer group border-white/20 backdrop-blur-xl animate-slide-up"
+                className="bg-white/10 backdrop-blur-sm p-8 hover:bg-white/20 transition-all duration-500 cursor-pointer group border-white/10 animate-slide-up"
                 style={{ animationDelay: `${0.5 + index * 0.1}s` }}
                 onMouseEnter={() => setHoveredFeature(index)}
                 onMouseLeave={() => setHoveredFeature(null)}
@@ -189,7 +193,7 @@ const Index = () => {
                   <h3 className="text-xl font-bold text-white group-hover:text-cyan-200 transition-colors">
                     {feature.title}
                   </h3>
-                  <p className="text-blue-100 text-sm leading-relaxed">
+                  <p className="text-slate-300 text-sm leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
@@ -198,35 +202,35 @@ const Index = () => {
           </div>
 
           {/* Trust Indicators */}
-          <Card className="glass p-6 text-center border-white/20 backdrop-blur-xl">
+          <Card className="bg-white/10 backdrop-blur-sm p-6 text-center border-white/10">
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8 text-white">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="w-5 h-5 text-green-400" />
-                <span className="text-sm">Trusted worldwide</span>
+                <span className="text-sm text-slate-300">Trusted worldwide</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Shield className="w-5 h-5 text-blue-400" />
-                <span className="text-sm">Enterprise security</span>
+                <span className="text-sm text-slate-300">Enterprise security</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-purple-400" />
-                <span className="text-sm">24/7 support</span>
+                <span className="text-sm text-slate-300">24/7 support</span>
               </div>
             </div>
           </Card>
 
           {/* CTA Section */}
-          <Card className="glass p-8 text-center border-white/20 backdrop-blur-xl">
+          <Card className="bg-white/10 backdrop-blur-sm p-8 text-center border-white/10">
             <h3 className="text-2xl font-bold text-white mb-3">
               Ready to transform your business?
             </h3>
-            <p className="text-blue-100 mb-6">
+            <p className="text-slate-300 mb-6">
               Join thousands of contractors who've revolutionized their process
             </p>
             <Button 
               size="lg"
               onClick={() => navigate('/signup')}
-              className="bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-white px-10 py-4 text-lg font-semibold shadow-2xl hover:scale-105 transition-all duration-300 group"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-10 py-4 text-lg font-semibold shadow-2xl hover:scale-105 transition-all duration-300 group"
             >
               Start Your Free Trial
               <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" />
