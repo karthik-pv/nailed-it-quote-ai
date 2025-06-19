@@ -11,61 +11,81 @@ import {
   Users, 
   Clock, 
   CheckCircle,
-  PlayCircle
+  PlayCircle,
+  Crown,
+  Sparkles,
+  TrendingUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const navigate = useNavigate();
   const [hoveredFeature, setHoveredFeature] = useState(null);
+  const [hoveredStat, setHoveredStat] = useState(null);
 
   const features = [
     {
       icon: Zap,
       title: "AI-Powered Quotes",
-      description: "Generate professional quotes instantly with our advanced AI"
+      description: "Generate professional quotes instantly with our advanced AI",
+      gradient: "from-yellow-400 to-orange-500"
     },
     {
       icon: Shield,
       title: "Secure & Reliable",
-      description: "Enterprise-grade security for your business data"
+      description: "Enterprise-grade security for your business data",
+      gradient: "from-green-400 to-emerald-500"
     },
     {
       icon: Users,
       title: "Customer Management",
-      description: "Streamline your customer relationships effortlessly"
+      description: "Streamline your customer relationships effortlessly",
+      gradient: "from-purple-400 to-pink-500"
     },
     {
       icon: Clock,
       title: "Save Time",
-      description: "Reduce quote generation time by 90%"
+      description: "Reduce quote generation time by 90%",
+      gradient: "from-blue-400 to-cyan-500"
     }
   ];
 
+  const stats = [
+    { number: "1000+", label: "Contractors Trust Us", icon: Users },
+    { number: "4.9/5", label: "Customer Rating", icon: Star },
+    { number: "90%", label: "Time Saved", icon: TrendingUp },
+    { number: "24/7", label: "Support Available", icon: Shield }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute top-40 right-20 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl floating" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute bottom-20 left-40 w-80 h-80 bg-purple-300/20 rounded-full blur-3xl floating" style={{ animationDelay: '4s' }}></div>
+      
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">N</span>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-blue-600 font-bold text-lg">N</span>
               </div>
-              <span className="text-xl font-bold gradient-text">NailedIt</span>
+              <span className="text-2xl font-bold text-white">NailedIt</span>
             </div>
             
             <div className="flex items-center space-x-4">
               <Button 
                 variant="ghost" 
                 onClick={() => navigate('/login')}
-                className="text-gray-600 hover:text-blue-600 hover:bg-white/50"
+                className="text-white hover:text-blue-100 hover:bg-white/10 border border-white/20 glass-button"
               >
                 Login
               </Button>
               <Button 
                 onClick={() => navigate('/signup')}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 glass-button"
+                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
               >
                 Sign Up
               </Button>
@@ -74,141 +94,146 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in">
-            <Badge className="mb-6 bg-blue-100 text-blue-700 border-blue-200 px-4 py-2">
-              <Star className="w-4 h-4 mr-2" />
-              1000+ contractors trust us
+      {/* Main Content */}
+      <div className="pt-20 px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto items-center min-h-screen">
+        
+        {/* Left Side - Hero Content */}
+        <div className="space-y-8 animate-fade-in">
+          <div className="space-y-6">
+            <Badge className="bg-white/20 text-white border-white/30 px-6 py-3 text-lg backdrop-blur-sm">
+              <Crown className="w-5 h-5 mr-2" />
+              Trusted by 1000+ contractors
             </Badge>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8">
-              <span className="gradient-text">Transform Your</span>
+            <h1 className="text-6xl lg:text-7xl font-bold text-white leading-tight">
+              Transform Your
               <br />
-              <span className="text-gray-900">Service Business</span>
+              <span className="bg-gradient-to-r from-cyan-300 to-white bg-clip-text text-transparent">
+                Service Business
+              </span>
             </h1>
             
-            <p className="text-xl sm:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-blue-100 leading-relaxed max-w-lg">
               Generate professional quotes instantly with AI, manage customers effortlessly, 
               and grow your fencing business like never before.
             </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/signup')}
+              className="bg-white text-blue-600 hover:bg-blue-50 px-10 py-4 text-lg font-semibold shadow-2xl hover:shadow-white/25 hover:scale-105 transition-all duration-300 group"
+            >
+              Get Started Free
+              <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            </Button>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-              <Button 
-                size="lg" 
-                onClick={() => navigate('/signup')}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 text-lg glass-button group"
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-4 text-lg backdrop-blur-sm glass-button group"
+            >
+              <PlayCircle className="mr-3 w-6 h-6" />
+              Watch Demo
+            </Button>
+          </div>
+
+          {/* Stats Row */}
+          <div className="flex flex-wrap gap-6 pt-8">
+            {stats.map((stat, index) => (
+              <div 
+                key={index}
+                className="flex items-center space-x-3 group cursor-pointer"
+                onMouseEnter={() => setHoveredStat(index)}
+                onMouseLeave={() => setHoveredStat(null)}
               >
-                Get Started Free
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="glass-card hover:glass px-8 py-4 text-lg group"
-              >
-                <PlayCircle className="mr-2 w-5 h-5" />
-                Watch Demo
-              </Button>
-            </div>
-            
-            <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
-              <div className="flex items-center">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-                <span>4.9/5 rating</span>
+                <div className={`w-12 h-12 rounded-full bg-white/20 flex items-center justify-center transition-all duration-300 ${
+                  hoveredStat === index ? 'scale-110 bg-white/30' : ''
+                }`}>
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-white">{stat.number}</div>
+                  <div className="text-sm text-blue-200">{stat.label}</div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+        {/* Right Side - Features Grid */}
+        <div className="space-y-8 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold text-white mb-4 flex items-center justify-center">
+              <Sparkles className="w-8 h-8 mr-3 text-cyan-300" />
               Why Choose NailedIt?
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {features.map((feature, index) => (
               <Card 
                 key={index}
-                className="glass-card p-6 hover:glass transition-all duration-300 cursor-pointer group animate-slide-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className="glass p-8 hover:bg-white/20 transition-all duration-500 cursor-pointer group border-white/20 backdrop-blur-xl animate-slide-up"
+                style={{ animationDelay: `${0.5 + index * 0.1}s` }}
                 onMouseEnter={() => setHoveredFeature(index)}
                 onMouseLeave={() => setHoveredFeature(null)}
               >
-                <div className="flex flex-col items-center text-center">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center mb-4 transition-transform duration-300 ${
-                    hoveredFeature === index ? 'scale-110' : ''
+                <div className="text-center space-y-4">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center mx-auto transition-all duration-500 ${
+                    hoveredFeature === index ? 'scale-110 shadow-2xl' : ''
                   }`}>
-                    <feature.icon className="w-6 h-6 text-white" />
+                    <feature.icon className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-bold text-white group-hover:text-cyan-200 transition-colors">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-blue-100 text-sm leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
               </Card>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Trust Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <Card className="glass p-8 text-center">
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8 text-sm text-gray-600">
-              <div className="flex items-center">
-                <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                Trusted by service professionals worldwide
+          {/* Trust Indicators */}
+          <Card className="glass p-6 text-center border-white/20 backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8 text-white">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <span className="text-sm">Trusted worldwide</span>
               </div>
-              <div className="flex items-center">
-                <Shield className="w-4 h-4 text-blue-500 mr-2" />
-                Enterprise-grade security
+              <div className="flex items-center space-x-2">
+                <Shield className="w-5 h-5 text-blue-400" />
+                <span className="text-sm">Enterprise security</span>
               </div>
-              <div className="flex items-center">
-                <Clock className="w-4 h-4 text-purple-500 mr-2" />
-                24/7 support
+              <div className="flex items-center space-x-2">
+                <Clock className="w-5 h-5 text-purple-400" />
+                <span className="text-sm">24/7 support</span>
               </div>
             </div>
           </Card>
-        </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <Card className="glass p-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          {/* CTA Section */}
+          <Card className="glass p-8 text-center border-white/20 backdrop-blur-xl">
+            <h3 className="text-2xl font-bold text-white mb-3">
               Ready to transform your business?
-            </h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Join thousands of contractors who've revolutionized their quoting process
+            </h3>
+            <p className="text-blue-100 mb-6">
+              Join thousands of contractors who've revolutionized their process
             </p>
             <Button 
               size="lg"
               onClick={() => navigate('/signup')}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 text-lg glass-button group"
+              className="bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-white px-10 py-4 text-lg font-semibold shadow-2xl hover:scale-105 transition-all duration-300 group"
             >
               Start Your Free Trial
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Card>
         </div>
-      </section>
-
-      {/* Floating Elements */}
-      <div className="fixed top-20 left-10 w-20 h-20 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-xl floating" style={{ animationDelay: '0s' }}></div>
-      <div className="fixed top-40 right-10 w-32 h-32 bg-gradient-to-r from-blue-300/20 to-cyan-300/20 rounded-full blur-xl floating" style={{ animationDelay: '2s' }}></div>
-      <div className="fixed bottom-20 left-20 w-24 h-24 bg-gradient-to-r from-purple-300/20 to-pink-300/20 rounded-full blur-xl floating" style={{ animationDelay: '4s' }}></div>
+      </div>
     </div>
   );
 };

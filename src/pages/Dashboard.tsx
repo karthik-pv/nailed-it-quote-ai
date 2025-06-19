@@ -228,14 +228,14 @@ const Dashboard = () => {
             <div className="lg:col-span-2">
               <Card className="glass p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Recent Quotes</h3>
+                  <h3 className="text-xl font-bold text-gray-900">Recent Quotes</h3>
                   <Button 
-                    size="sm"
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white glass-button"
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white glass-button px-6 py-3 shadow-lg hover:shadow-xl"
                     onClick={() => navigate('/quotes')}
                   >
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Quote
+                    <Plus className="w-5 h-5 mr-3" />
+                    Create New Quote
                   </Button>
                 </div>
 
@@ -276,29 +276,29 @@ const Dashboard = () => {
             <div className="space-y-6">
               {/* Quick Actions */}
               <Card className="glass p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                <div className="space-y-3">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
+                <div className="space-y-4">
                   <Button 
-                    className="w-full justify-start glass-button"
+                    className="w-full justify-start glass-button text-lg py-4 bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
                     onClick={() => navigate('/quotes')}
                   >
-                    <Plus className="w-4 h-4 mr-3" />
+                    <Plus className="w-5 h-5 mr-3" />
                     Create New Quote
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start glass-card border-0"
+                    className="w-full justify-start glass-card border-0 py-4"
                     onClick={() => navigate('/customers')}
                   >
-                    <Users className="w-4 h-4 mr-3" />
+                    <Users className="w-5 h-5 mr-3" />
                     Add Customer
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start glass-card border-0"
+                    className="w-full justify-start glass-card border-0 py-4"
                     onClick={() => navigate('/schedule')}
                   >
-                    <Calendar className="w-4 h-4 mr-3" />
+                    <Calendar className="w-5 h-5 mr-3" />
                     Schedule Job
                   </Button>
                 </div>
@@ -307,12 +307,12 @@ const Dashboard = () => {
               {/* AI Training Status */}
               <Card className="glass p-6">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">AI Training Status</h3>
-                    <p className="text-sm text-green-600">Training Complete</p>
+                    <h3 className="font-bold text-gray-900 text-lg">AI Training Status</h3>
+                    <p className="text-sm text-green-600 font-medium">Training Complete</p>
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">
