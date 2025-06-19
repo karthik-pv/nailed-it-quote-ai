@@ -127,7 +127,7 @@ const Login = () => {
                   id="remember"
                   checked={formData.rememberMe}
                   onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, rememberMe: checked }))
+                    setFormData(prev => ({ ...prev, rememberMe: Boolean(checked) }))
                   }
                 />
                 <Label htmlFor="remember" className="text-sm text-gray-600">

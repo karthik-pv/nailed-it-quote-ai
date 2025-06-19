@@ -20,8 +20,10 @@ import {
   MoreVertical,
   User
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
   const stats = [
@@ -104,23 +106,43 @@ const Dashboard = () => {
           </div>
 
           <nav className="space-y-2">
-            <Button variant="ghost" className="w-full justify-start glass-button text-blue-600 bg-blue-50">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start glass-button text-blue-600 bg-blue-50"
+              onClick={() => navigate('/dashboard')}
+            >
               <FileText className="w-4 h-4 mr-3" />
               Dashboard
             </Button>
-            <Button variant="ghost" className="w-full justify-start hover:bg-white/50">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start hover:bg-white/50"
+              onClick={() => navigate('/quotes')}
+            >
               <FileText className="w-4 h-4 mr-3" />
               Quotes
             </Button>
-            <Button variant="ghost" className="w-full justify-start hover:bg-white/50">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start hover:bg-white/50"
+              onClick={() => navigate('/customers')}
+            >
               <Users className="w-4 h-4 mr-3" />
               Customers
             </Button>
-            <Button variant="ghost" className="w-full justify-start hover:bg-white/50">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start hover:bg-white/50"
+              onClick={() => navigate('/schedule')}
+            >
               <Calendar className="w-4 h-4 mr-3" />
               Schedule
             </Button>
-            <Button variant="ghost" className="w-full justify-start hover:bg-white/50">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start hover:bg-white/50"
+              onClick={() => navigate('/settings')}
+            >
               <Settings className="w-4 h-4 mr-3" />
               Settings
             </Button>
@@ -193,9 +215,7 @@ const Dashboard = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounde
-
-d-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                     <stat.icon className="w-6 h-6 text-white" />
                   </div>
                 </div>
@@ -212,6 +232,7 @@ d-xl flex items-center justify-center">
                   <Button 
                     size="sm"
                     className="bg-gradient-to-r from-blue-600 to-blue-700 text-white glass-button"
+                    onClick={() => navigate('/quotes')}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     New Quote
@@ -257,15 +278,26 @@ d-xl flex items-center justify-center">
               <Card className="glass p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                 <div className="space-y-3">
-                  <Button className="w-full justify-start glass-button">
+                  <Button 
+                    className="w-full justify-start glass-button"
+                    onClick={() => navigate('/quotes')}
+                  >
                     <Plus className="w-4 h-4 mr-3" />
                     Create New Quote
                   </Button>
-                  <Button variant="outline" className="w-full justify-start glass-card border-0">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start glass-card border-0"
+                    onClick={() => navigate('/customers')}
+                  >
                     <Users className="w-4 h-4 mr-3" />
                     Add Customer
                   </Button>
-                  <Button variant="outline" className="w-full justify-start glass-card border-0">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start glass-card border-0"
+                    onClick={() => navigate('/schedule')}
+                  >
                     <Calendar className="w-4 h-4 mr-3" />
                     Schedule Job
                   </Button>
