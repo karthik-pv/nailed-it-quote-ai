@@ -98,11 +98,11 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-xl;
+    @apply bg-white/70 backdrop-blur-md border border-white/30 shadow-sm;
   }
   
   .glass-card {
-    @apply bg-white/60 backdrop-blur-md border border-white/30 shadow-lg;
+    @apply bg-white/50 backdrop-blur-sm border border-white/40 shadow-sm;
   }
   
   .gradient-text {
@@ -110,7 +110,7 @@
   }
   
   .glass-button {
-    @apply glass hover:bg-white/90 transition-all duration-300 hover:shadow-2xl hover:scale-105;
+    @apply glass hover:bg-white/80 transition-all duration-300 hover:shadow-sm hover:scale-105;
   }
   
   .floating {

@@ -17,7 +17,9 @@ import {
   Crown,
   CheckCircle,
   MoreVertical,
-  User
+  User,
+  Menu,
+  X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AIGuide from "@/components/AIGuide";
@@ -25,6 +27,7 @@ import AIGuide from "@/components/AIGuide";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const stats = [
     {
@@ -95,69 +98,84 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
-      {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-64 glass border-r border-white/20 z-40">
-        <div className="p-6">
-          <div className="flex items-center space-x-2 mb-8">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">N</span>
-            </div>
-            <span className="text-xl font-bold gradient-text">NailedIt</span>
-          </div>
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
-          <nav className="space-y-2">
+      {/* Sidebar */}
+      <div className={`fixed left-0 top-0 h-full w-64 glass border-r border-white/20 z-50 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <div className="p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-6 lg:mb-8">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">N</span>
+              </div>
+              <span className="text-lg lg:text-xl font-bold gradient-text">NailedIt</span>
+            </div>
             <Button 
               variant="ghost" 
-              className="w-full justify-start glass-button text-blue-600 bg-blue-50"
+              size="sm" 
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <nav className="space-y-1 lg:space-y-2">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start glass-button text-blue-600 bg-blue-50 text-sm lg:text-base"
               onClick={() => navigate('/dashboard')}
             >
-              <FileText className="w-4 h-4 mr-3" />
+              <FileText className="w-4 h-4 mr-2 lg:mr-3" />
               Dashboard
             </Button>
             <Button 
               variant="ghost" 
-              className="w-full justify-start hover:bg-white/50"
+              className="w-full justify-start hover:bg-white/50 text-sm lg:text-base"
               onClick={() => navigate('/quotes')}
             >
-              <FileText className="w-4 h-4 mr-3" />
+              <FileText className="w-4 h-4 mr-2 lg:mr-3" />
               Quotes
             </Button>
             <Button 
               variant="ghost" 
-              className="w-full justify-start hover:bg-white/50"
+              className="w-full justify-start hover:bg-white/50 text-sm lg:text-base"
               onClick={() => navigate('/customers')}
             >
-              <Users className="w-4 h-4 mr-3" />
+              <Users className="w-4 h-4 mr-2 lg:mr-3" />
               Customers
             </Button>
             <Button 
               variant="ghost" 
-              className="w-full justify-start hover:bg-white/50"
+              className="w-full justify-start hover:bg-white/50 text-sm lg:text-base"
               onClick={() => navigate('/schedule')}
             >
-              <Calendar className="w-4 h-4 mr-3" />
+              <Calendar className="w-4 h-4 mr-2 lg:mr-3" />
               Schedule
             </Button>
             <Button 
               variant="ghost" 
-              className="w-full justify-start hover:bg-white/50"
+              className="w-full justify-start hover:bg-white/50 text-sm lg:text-base"
               onClick={() => navigate('/settings')}
             >
-              <Settings className="w-4 h-4 mr-3" />
+              <Settings className="w-4 h-4 mr-2 lg:mr-3" />
               Settings
             </Button>
           </nav>
 
-          <div className="mt-8">
-            <Card className="glass-card p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <Crown className="w-5 h-5 text-yellow-500" />
-                <span className="font-semibold text-gray-900">Upgrade to Pro</span>
+          <div className="mt-6 lg:mt-8">
+            <Card className="glass-card p-3 lg:p-4">
+              <div className="flex items-center space-x-2 mb-2 lg:mb-3">
+                <Crown className="w-4 lg:w-5 h-4 lg:h-5 text-yellow-500" />
+                <span className="font-semibold text-gray-900 text-sm lg:text-base">Upgrade to Pro</span>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-xs lg:text-sm text-gray-600 mb-3 lg:mb-4">
                 Unlock unlimited quotes and advanced features
               </p>
-              <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+              <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs lg:text-sm">
                 Upgrade Now
               </Button>
             </Card>
@@ -166,57 +184,67 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="ml-64">
+      <div className="lg:ml-64">
         {/* Header */}
-        <header className="glass border-b border-white/20 px-6 py-4">
+        <header className="glass border-b border-white/20 px-4 lg:px-6 py-3 lg:py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="lg:hidden"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Dashboard</h1>
+                <p className="text-gray-600 text-sm lg:text-base hidden sm:block">Welcome back! Here's what's happening with your business.</p>
+              </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <div className="flex items-center space-x-2 lg:space-x-4">
+              <div className="relative hidden sm:block">
+                <Search className="w-4 lg:w-5 h-4 lg:h-5 text-gray-400 absolute left-2 lg:left-3 top-1/2 transform -translate-y-1/2" />
                 <Input 
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="glass-card border-0 pl-10 w-64"
+                  className="glass-card border-0 pl-8 lg:pl-10 w-32 lg:w-64 text-sm"
                 />
               </div>
               <Button variant="ghost" size="sm" className="glass-button">
-                <Bell className="w-5 h-5" />
+                <Bell className="w-4 lg:w-5 h-4 lg:h-5" />
               </Button>
-              <div className="flex items-center space-x-2 glass-card px-3 py-2 rounded-lg">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+              <div className="flex items-center space-x-1 lg:space-x-2 glass-card px-2 lg:px-3 py-1 lg:py-2 rounded-lg">
+                <div className="w-6 lg:w-8 h-6 lg:h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
+                  <User className="w-3 lg:w-4 h-3 lg:h-4 text-white" />
                 </div>
-                <span className="text-sm font-medium text-gray-700">John Doe</span>
+                <span className="text-xs lg:text-sm font-medium text-gray-700 hidden sm:block">John Doe</span>
               </div>
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <main className="p-6">
+        <main className="p-3 lg:p-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
             {stats.map((stat, index) => (
-              <Card key={index} className="glass-card p-6 animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+              <Card key={index} className="glass-card p-3 lg:p-6 animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                    <div className="flex items-center mt-2">
-                      <TrendingUp className={`w-4 h-4 mr-1 ${stat.positive ? 'text-green-500' : 'text-red-500'}`} />
-                      <span className={`text-sm ${stat.positive ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className="text-xs lg:text-sm text-gray-600 mb-1">{stat.title}</p>
+                    <p className="text-lg lg:text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <div className="flex items-center mt-1 lg:mt-2">
+                      <TrendingUp className={`w-3 lg:w-4 h-3 lg:h-4 mr-1 ${stat.positive ? 'text-green-500' : 'text-red-500'}`} />
+                      <span className={`text-xs lg:text-sm ${stat.positive ? 'text-green-600' : 'text-red-600'}`}>
                         {stat.change}
                       </span>
                     </div>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                    <stat.icon className="w-6 h-6 text-white" />
+                  <div className="w-8 lg:w-12 h-8 lg:h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <stat.icon className="w-4 lg:w-6 h-4 lg:h-6 text-white" />
                   </div>
                 </div>
               </Card>
@@ -226,43 +254,43 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Recent Quotes */}
             <div className="lg:col-span-2">
-              <Card className="glass p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">Recent Quotes</h3>
+              <Card className="glass p-4 lg:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 lg:mb-6 space-y-3 sm:space-y-0">
+                  <h3 className="text-lg lg:text-xl font-bold text-gray-900">Recent Quotes</h3>
                   <Button 
-                    size="lg"
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white glass-button px-6 py-3 shadow-lg hover:shadow-xl"
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white glass-button px-4 lg:px-6 py-2 lg:py-3 shadow-sm hover:shadow-md text-sm lg:text-base w-full sm:w-auto"
                     onClick={() => navigate('/quotes')}
                   >
-                    <Plus className="w-5 h-5 mr-3" />
+                    <Plus className="w-4 lg:w-5 h-4 lg:h-5 mr-2 lg:mr-3" />
                     Create New Quote
                   </Button>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3 lg:space-y-4">
                   {recentQuotes.map((quote, index) => (
-                    <div key={quote.id} className="glass-card p-4 hover:glass transition-all duration-200">
+                    <div key={quote.id} className="glass-card p-3 lg:p-4 hover:glass transition-all duration-200">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <span className="font-medium text-gray-900">{quote.id}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 lg:space-x-3 mb-1 lg:mb-2">
+                            <span className="font-medium text-gray-900 text-sm lg:text-base">{quote.id}</span>
                             <Badge className={`${getStatusColor(quote.status)} text-xs`}>
                               {quote.status}
                             </Badge>
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-xs lg:text-sm text-gray-600 truncate">
                             {quote.customer} • {quote.project}
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
                             {quote.time}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-gray-900">
+                        <div className="text-right ml-2">
+                          <div className="text-base lg:text-lg font-semibold text-gray-900">
                             {quote.amount}
                           </div>
                           <Button variant="ghost" size="sm" className="p-1">
-                            <MoreVertical className="w-4 h-4" />
+                            <MoreVertical className="w-3 lg:w-4 h-3 lg:h-4" />
                           </Button>
                         </div>
                       </div>
@@ -273,49 +301,49 @@ const Dashboard = () => {
             </div>
 
             {/* Quick Actions & AI Status */}
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               {/* Quick Actions */}
-              <Card className="glass p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
-                <div className="space-y-4">
+              <Card className="glass p-4 lg:p-6">
+                <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-4 lg:mb-6">Quick Actions</h3>
+                <div className="space-y-3 lg:space-y-4">
                   <Button 
-                    className="w-full justify-start glass-button text-lg py-4 bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
+                    className="w-full justify-start glass-button text-sm lg:text-lg py-3 lg:py-4 bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
                     onClick={() => navigate('/quotes')}
                   >
-                    <Plus className="w-5 h-5 mr-3" />
+                    <Plus className="w-4 lg:w-5 h-4 lg:h-5 mr-2 lg:mr-3" />
                     Create New Quote
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start glass-card border-0 py-4"
+                    className="w-full justify-start glass-card border-0 py-3 lg:py-4 text-sm lg:text-base"
                     onClick={() => navigate('/customers')}
                   >
-                    <Users className="w-5 h-5 mr-3" />
+                    <Users className="w-4 lg:w-5 h-4 lg:h-5 mr-2 lg:mr-3" />
                     Add Customer
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full justify-start glass-card border-0 py-4"
+                    className="w-full justify-start glass-card border-0 py-3 lg:py-4 text-sm lg:text-base"
                     onClick={() => navigate('/schedule')}
                   >
-                    <Calendar className="w-5 h-5 mr-3" />
+                    <Calendar className="w-4 lg:w-5 h-4 lg:h-5 mr-2 lg:mr-3" />
                     Schedule Job
                   </Button>
                 </div>
               </Card>
 
               {/* AI Training Status */}
-              <Card className="glass p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-white" />
+              <Card className="glass p-4 lg:p-6">
+                <div className="flex items-center space-x-2 lg:space-x-3 mb-3 lg:mb-4">
+                  <div className="w-10 lg:w-12 h-10 lg:h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="w-5 lg:w-6 h-5 lg:h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 text-lg">AI Training Status</h3>
-                    <p className="text-sm text-green-600 font-medium">Training Complete</p>
+                    <h3 className="font-bold text-gray-900 text-base lg:text-lg">AI Training Status</h3>
+                    <p className="text-xs lg:text-sm text-green-600 font-medium">Training Complete</p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-xs lg:text-sm text-gray-600 mb-3 lg:mb-4">
                   AI is ready to generate quotes
                 </p>
                 <p className="text-xs text-gray-500">

@@ -105,31 +105,34 @@ const AIGuide = () => {
 
   if (!isOpen) {
     return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-2xl hover:shadow-blue-500/25 hover:scale-110 transition-all duration-300 z-50"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </Button>
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex flex-col items-center justify-center p-2"
+        >
+          <MessageCircle className="w-6 h-6 mb-1" />
+          <span className="text-xs font-medium">Chatbot</span>
+        </Button>
+      </div>
     );
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-96 bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl z-50 flex flex-col">
+    <Card className="fixed bottom-4 right-4 w-[90vw] max-w-96 h-[70vh] max-h-96 bg-white/95 backdrop-blur-xl border border-white/20 shadow-lg z-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+      <div className="flex items-center justify-between p-3 lg:p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
         <div className="flex items-center space-x-2">
-          <Bot className="w-5 h-5" />
-          <span className="font-semibold">AI Guide</span>
+          <Bot className="w-4 lg:w-5 h-4 lg:h-5" />
+          <span className="font-semibold text-sm lg:text-base">AI Chatbot</span>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 lg:space-x-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsMinimized(!isMinimized)}
             className="text-white hover:bg-white/20 p-1"
           >
-            {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+            {isMinimized ? <Maximize2 className="w-3 lg:w-4 h-3 lg:h-4" /> : <Minimize2 className="w-3 lg:w-4 h-3 lg:h-4" />}
           </Button>
           <Button
             variant="ghost"
@@ -137,7 +140,7 @@ const AIGuide = () => {
             onClick={() => setIsOpen(false)}
             className="text-white hover:bg-white/20 p-1"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3 lg:w-4 h-3 lg:h-4" />
           </Button>
         </div>
       </div>
@@ -145,7 +148,7 @@ const AIGuide = () => {
       {!isMinimized && (
         <>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3 lg:space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -154,32 +157,32 @@ const AIGuide = () => {
                 }`}
               >
                 {!message.isUser && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-white" />
+                  <div className="w-6 lg:w-8 h-6 lg:h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-3 lg:w-4 h-3 lg:h-4 text-white" />
                   </div>
                 )}
                 <div
-                  className={`max-w-xs p-3 rounded-lg ${
+                  className={`max-w-[70%] p-2 lg:p-3 rounded-lg ${
                     message.isUser
-                      ? 'bg-blue-600 text-white ml-8'
-                      : 'bg-gray-100 text-gray-800 mr-8'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-800'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-line">{message.text}</p>
+                  <p className="text-xs lg:text-sm whitespace-pre-line">{message.text}</p>
                 </div>
                 {message.isUser && (
-                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-gray-600" />
+                  <div className="w-6 lg:w-8 h-6 lg:h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
+                    <User className="w-3 lg:w-4 h-3 lg:h-4 text-gray-600" />
                   </div>
                 )}
               </div>
             ))}
             {isLoading && (
               <div className="flex items-start space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-white" />
+                <div className="w-6 lg:w-8 h-6 lg:h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                  <Bot className="w-3 lg:w-4 h-3 lg:h-4 text-white" />
                 </div>
-                <div className="bg-gray-100 p-3 rounded-lg">
+                <div className="bg-gray-100 p-2 lg:p-3 rounded-lg">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
@@ -191,22 +194,23 @@ const AIGuide = () => {
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-3 lg:p-4 border-t border-gray-200">
             <div className="flex space-x-2">
               <Input
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything..."
-                className="flex-1"
+                className="flex-1 text-sm"
                 disabled={isLoading}
               />
               <Button
                 onClick={handleSendMessage}
                 disabled={!inputText.trim() || isLoading}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 text-white"
+                size="sm"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-3 lg:w-4 h-3 lg:h-4" />
               </Button>
             </div>
           </div>
