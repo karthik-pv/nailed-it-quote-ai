@@ -130,8 +130,8 @@ const Index = () => {
             
             <Button 
               size="lg" 
-              variant="outline"
-              className="border-2 border-white/30 text-white hover:bg-white/10 px-10 py-4 text-lg backdrop-blur-sm group"
+              variant="ghost"
+              className="border-2 border-white/30 text-white hover:bg-white/10 hover:text-white px-10 py-4 text-lg backdrop-blur-sm group bg-transparent"
             >
               <PlayCircle className="mr-3 w-6 h-6" />
               Watch Demo
