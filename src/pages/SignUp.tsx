@@ -3,18 +3,40 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
   Check, 
   Crown, 
   Zap,
-  Star
+  Star,
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState("professional");
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const plans = [
     {
@@ -72,8 +94,15 @@ const SignUp = () => {
     setSelectedPlan(planId);
   };
 
-  const handleContinue = () => {
-    navigate('/onboarding');
+  const handleSignUp = (e) => {
+    e.preventDefault();
+    // TODO: Implement actual signup with Supabase
+    navigate('/dashboard');
+  };
+
+  const handleGoogleSignUp = () => {
+    // TODO: Implement Google OAuth with Supabase
+    navigate('/dashboard');
   };
 
   return (
@@ -86,7 +115,7 @@ const SignUp = () => {
               <Button 
                 variant="ghost" 
                 onClick={() => navigate('/')}
-                className="p-2 hover:bg-white/50"
+                className="p-2 hover:bg-white/50 shadow-sm"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -103,7 +132,7 @@ const SignUp = () => {
               <Button 
                 variant="ghost" 
                 onClick={() => navigate('/login')}
-                className="text-blue-600 hover:text-blue-700 hover:bg-white/50"
+                className="text-blue-600 hover:text-blue-700 hover:bg-white/50 shadow-sm"
               >
                 Sign In
               </Button>
@@ -115,6 +144,122 @@ const SignUp = () => {
       {/* Main Content */}
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
+          {/* User Registration Form */}
+          <div className="max-w-md mx-auto mb-12 animate-fade-in">
+            <Card className="glass p-8">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Your Account</h2>
+                <p className="text-gray-600">Get started with NailedIt today</p>
+              </div>
+
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div>
+                  <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
+                    Full Name
+                  </Label>
+                  <div className="mt-1 relative">
+                    <Input
+                      id="fullName"
+                      name="fullName"
+                      type="text"
+                      required
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      placeholder="Your full name"
+                      className="glass-card border-0 pl-10 pr-4 py-3"
+                    />
+                    <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email Address
+                  </Label>
+                  <div className="mt-1 relative">
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="you@company.com"
+                      className="glass-card border-0 pl-10 pr-4 py-3"
+                    />
+                    <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    Password
+                  </Label>
+                  <div className="mt-1 relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="Create a password"
+                      className="glass-card border-0 pl-10 pr-12 py-3"
+                    />
+                    <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 h-8 w-8"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <Eye className="w-4 h-4 text-gray-400" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 shadow-sm"
+                >
+                  Create Account
+                </Button>
+              </form>
+
+              {/* Divider */}
+              <div className="mt-6 mb-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-gray-500">Or continue with</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Google Sign Up */}
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignUp}
+                className="w-full glass-card border-0 py-3 text-gray-700 hover:text-gray-900 shadow-sm"
+              >
+                <img 
+                  src="https://developers.google.com/identity/images/g-logo.png" 
+                  alt="Google" 
+                  className="w-5 h-5 mr-3"
+                />
+                Continue with Google
+              </Button>
+            </Card>
+          </div>
+
           {/* Header */}
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-4xl sm:text-5xl font-bold mb-4">
@@ -172,7 +317,7 @@ const SignUp = () => {
                 </ul>
 
                 <Button 
-                  className={`w-full ${
+                  className={`w-full shadow-sm ${
                     selectedPlan === plan.id
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
                       : 'glass-button text-gray-700 hover:text-blue-700'
@@ -183,25 +328,6 @@ const SignUp = () => {
                 </Button>
               </Card>
             ))}
-          </div>
-
-          {/* Continue Button */}
-          <div className="text-center">
-            <Card className="glass-card p-8 max-w-md mx-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Ready to get started?
-              </h3>
-              <Button 
-                size="lg"
-                onClick={handleContinue}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white glass-button"
-              >
-                Continue to Setup
-              </Button>
-              <p className="text-xs text-gray-500 mt-4">
-                Start your 14-day free trial. No credit card required.
-              </p>
-            </Card>
           </div>
         </div>
       </div>

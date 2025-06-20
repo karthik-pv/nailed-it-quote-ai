@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,9 +10,9 @@ import {
   User,
   Plus,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 const Schedule = () => {
   const navigate = useNavigate();
@@ -85,12 +85,22 @@ const Schedule = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Schedule</h1>
-              <p className="text-gray-600">Manage your job schedule and appointments</p>
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/dashboard')}
+                className="glass-button shadow-sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Schedule</h1>
+                <p className="text-gray-600">Manage your job schedule and appointments</p>
+              </div>
             </div>
             <Button 
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white glass-button"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white glass-button shadow-sm"
               onClick={() => navigate('/dashboard')}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -101,13 +111,13 @@ const Schedule = () => {
           {/* Calendar Navigation */}
           <Card className="glass p-4 mb-6">
             <div className="flex items-center justify-between">
-              <Button variant="ghost" size="sm" className="glass-button">
+              <Button variant="ghost" size="sm" className="glass-button shadow-sm">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <h2 className="text-lg font-semibold text-gray-900">
                 December 2024
               </h2>
-              <Button variant="ghost" size="sm" className="glass-button">
+              <Button variant="ghost" size="sm" className="glass-button shadow-sm">
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
@@ -156,10 +166,10 @@ const Schedule = () => {
                 </div>
                 
                 <div className="flex flex-col space-y-2">
-                  <Button size="sm" className="glass-button">
+                  <Button size="sm" className="glass-button shadow-sm">
                     View Details
                   </Button>
-                  <Button variant="outline" size="sm" className="glass-card border-0">
+                  <Button variant="outline" size="sm" className="glass-card border-0 shadow-sm">
                     Reschedule
                   </Button>
                 </div>
