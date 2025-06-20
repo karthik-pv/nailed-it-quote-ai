@@ -1,41 +1,46 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  ArrowLeft, 
-  Check, 
-  Crown, 
+import {
+  ArrowLeft,
+  Check,
+  Crown,
   Zap,
   Star,
   Mail,
   Lock,
   User,
   Eye,
-  EyeOff
+  EyeOff,
+  AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { authService } from "@/lib/auth";
 
 const SignUp = () => {
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState("professional");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
+    // Clear error when user starts typing
+    if (error) setError("");
   };
 
   const plans = [
@@ -44,117 +49,152 @@ const SignUp = () => {
       name: "Starter",
       price: "$29",
       period: "/month",
-      description: "Perfect for small contractors getting started",
+      description: "Perfect for small businesses just getting started",
       features: [
         "Up to 50 quotes per month",
-        "Basic AI quote generation",
+        "5 professional templates",
+        "Basic customer management",
         "Email support",
-        "Customer management",
-        "Mobile app access"
+        "Basic analytics",
       ],
-      popular: false
+      icon: Zap,
+      popular: false,
     },
     {
       id: "professional",
       name: "Professional",
       price: "$79",
       period: "/month",
-      description: "Ideal for growing fencing businesses",
+      description: "Most popular for growing businesses",
       features: [
         "Unlimited quotes",
-        "Advanced AI training",
+        "15+ premium templates",
+        "Advanced customer management",
+        "AI-powered quote optimization",
         "Priority support",
-        "Advanced analytics",
-        "Team collaboration",
+        "Advanced analytics & reporting",
         "Custom branding",
-        "API access"
+        "Integration capabilities",
       ],
-      popular: true
+      icon: Crown,
+      popular: true,
     },
     {
       id: "enterprise",
       name: "Enterprise",
       price: "$199",
       period: "/month",
-      description: "For large-scale operations",
+      description: "For large organizations with advanced needs",
       features: [
         "Everything in Professional",
+        "Unlimited team members",
         "White-label solution",
+        "API access",
         "Dedicated account manager",
         "Custom integrations",
-        "Advanced security",
-        "SLA guarantee",
-        "On-site training"
+        "Advanced security features",
+        "24/7 phone support",
       ],
-      popular: false
-    }
+      icon: Star,
+      popular: false,
+    },
   ];
 
-  const handlePlanSelect = (planId) => {
+  const handlePlanSelect = (planId: string) => {
     setSelectedPlan(planId);
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual signup with Supabase
-    navigate('/dashboard');
+    setLoading(true);
+    setError("");
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const result = await authService.signup({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+      });
+
+      if (result.error) {
+        setError(result.error);
+      } else if (result.user) {
+        // Signup successful - redirect to onboarding
+        navigate("/onboarding");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleSignUp = () => {
-    // TODO: Implement Google OAuth with Supabase
-    navigate('/dashboard');
+    // TODO: Implement Google OAuth integration
+    console.log("Google OAuth not implemented yet");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/')}
-                className="p-2 hover:bg-white/50 shadow-sm"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">N</span>
-                </div>
-                <span className="text-xl font-bold gradient-text">NailedIt</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Already have an account?</span>
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/login')}
-                className="text-blue-600 hover:text-blue-700 hover:bg-white/50 shadow-sm"
-              >
-                Sign In
-              </Button>
-            </div>
+      <nav className="absolute top-0 left-0 right-0 z-10 p-6">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Home
+          </Button>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">
+              Already have an account?
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/login")}
+              className="glass-card border-0"
+            >
+              Sign In
+            </Button>
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {/* User Registration Form */}
           <div className="max-w-md mx-auto mb-12 animate-fade-in">
             <Card className="glass p-8">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Your Account</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Create Your Account
+                </h2>
                 <p className="text-gray-600">Get started with NailedIt today</p>
               </div>
 
+              {/* Error Alert */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div>
-                  <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
+                  <Label
+                    htmlFor="fullName"
+                    className="text-sm font-medium text-gray-700"
+                  >
                     Full Name
                   </Label>
                   <div className="mt-1 relative">
@@ -167,13 +207,17 @@ const SignUp = () => {
                       onChange={handleInputChange}
                       placeholder="Your full name"
                       className="glass-card border-0 pl-10 pr-4 py-3"
+                      disabled={loading}
                     />
                     <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-medium text-gray-700"
+                  >
                     Email Address
                   </Label>
                   <div className="mt-1 relative">
@@ -186,13 +230,17 @@ const SignUp = () => {
                       onChange={handleInputChange}
                       placeholder="you@company.com"
                       className="glass-card border-0 pl-10 pr-4 py-3"
+                      disabled={loading}
                     />
                     <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-medium text-gray-700"
+                  >
                     Password
                   </Label>
                   <div className="mt-1 relative">
@@ -203,31 +251,54 @@ const SignUp = () => {
                       required
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder="Create a password"
+                      placeholder="Create a strong password"
                       className="glass-card border-0 pl-10 pr-12 py-3"
+                      disabled={loading}
                     />
                     <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                    <Button
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 h-8 w-8"
                     >
                       {showPassword ? (
-                        <EyeOff className="w-4 h-4 text-gray-400" />
+                        <EyeOff className="w-5 h-5" />
                       ) : (
-                        <Eye className="w-4 h-4 text-gray-400" />
+                        <Eye className="w-5 h-5" />
                       )}
-                    </Button>
+                    </button>
                   </div>
                 </div>
 
-                <Button 
+                <div>
+                  <Label
+                    htmlFor="confirmPassword"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Confirm Password
+                  </Label>
+                  <div className="mt-1 relative">
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      required
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      placeholder="Confirm your password"
+                      className="glass-card border-0 pl-10 pr-4 py-3"
+                      disabled={loading}
+                    />
+                    <Lock className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  </div>
+                </div>
+
+                <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 shadow-sm"
+                  disabled={loading}
                 >
-                  Create Account
+                  {loading ? "Creating Account..." : "Create Account"}
                 </Button>
               </form>
 
@@ -238,96 +309,102 @@ const SignUp = () => {
                     <div className="w-full border-t border-gray-200" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-gray-500">Or continue with</span>
+                    <span className="px-4 bg-white text-gray-500">
+                      Or continue with
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Google Sign Up */}
-              <Button 
+              <Button
                 type="button"
                 variant="outline"
                 onClick={handleGoogleSignUp}
-                className="w-full glass-card border-0 py-3 text-gray-700 hover:text-gray-900 shadow-sm"
+                className="w-full glass-card border-0 py-3 text-gray-700 hover:text-gray-900"
+                disabled={loading}
               >
-                <img 
-                  src="https://developers.google.com/identity/images/g-logo.png" 
-                  alt="Google" 
+                <img
+                  src="https://developers.google.com/identity/images/g-logo.png"
+                  alt="Google"
                   className="w-5 h-5 mr-3"
                 />
                 Continue with Google
               </Button>
+
+              {/* Terms */}
+              <p className="mt-6 text-xs text-center text-gray-500">
+                By creating an account, you agree to our{" "}
+                <a href="#" className="text-blue-600 hover:text-blue-700">
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a href="#" className="text-blue-600 hover:text-blue-700">
+                  Privacy Policy
+                </a>
+                .
+              </p>
             </Card>
           </div>
 
-          {/* Header */}
-          <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-              <span className="gradient-text">Choose Your Plan</span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Select the perfect plan for your fencing business and start generating 
-              professional quotes with AI today.
-            </p>
-          </div>
+          {/* Pricing Plans Preview */}
+          <div className="max-w-5xl mx-auto animate-fade-in-delayed">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Choose Your Plan
+              </h3>
+              <p className="text-gray-600">
+                You'll be able to select and customize your plan after creating
+                your account
+              </p>
+            </div>
 
-          {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {plans.map((plan, index) => (
-              <Card 
-                key={plan.id}
-                className={`glass-card p-8 cursor-pointer transition-all duration-300 relative animate-slide-up ${
-                  selectedPlan === plan.id 
-                    ? 'ring-2 ring-blue-500 glass' 
-                    : 'hover:glass'
-                }`}
-                style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => handlePlanSelect(plan.id)}
-              >
-                {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1">
-                    <Star className="w-3 h-3 mr-1" />
-                    Most Popular
-                  </Badge>
-                )}
-                
-                <div className="text-center mb-6">
-                  <div className="flex items-center justify-center mb-4">
-                    {plan.id === 'enterprise' ? (
-                      <Crown className="w-8 h-8 text-purple-600" />
-                    ) : (
-                      <Zap className="w-8 h-8 text-blue-600" />
+            <div className="grid md:grid-cols-3 gap-6">
+              {plans.map((plan) => {
+                const Icon = plan.icon;
+                return (
+                  <Card
+                    key={plan.id}
+                    className={`relative p-6 glass transition-all duration-200 ${
+                      plan.popular
+                        ? "ring-2 ring-blue-500 bg-blue-50/50"
+                        : "hover:shadow-lg"
+                    }`}
+                  >
+                    {plan.popular && (
+                      <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-600 to-purple-600">
+                        Most Popular
+                      </Badge>
                     )}
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                  <div className="flex items-baseline justify-center mb-2">
-                    <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                    <span className="text-gray-600 ml-1">{plan.period}</span>
-                  </div>
-                  <p className="text-gray-600 text-sm">{plan.description}</p>
-                </div>
 
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-start">
-                      <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700 text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                    <div className="text-center">
+                      <Icon className="w-8 h-8 mx-auto mb-4 text-blue-600" />
+                      <h4 className="text-xl font-bold text-gray-900 mb-2">
+                        {plan.name}
+                      </h4>
+                      <div className="mb-4">
+                        <span className="text-3xl font-bold text-gray-900">
+                          {plan.price}
+                        </span>
+                        <span className="text-gray-600">{plan.period}</span>
+                      </div>
+                      <p className="text-gray-600 mb-6 text-sm">
+                        {plan.description}
+                      </p>
 
-                <Button 
-                  className={`w-full shadow-sm ${
-                    selectedPlan === plan.id
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
-                      : 'glass-button text-gray-700 hover:text-blue-700'
-                  }`}
-                  onClick={() => handlePlanSelect(plan.id)}
-                >
-                  {selectedPlan === plan.id ? 'Selected' : 'Select Plan'}
-                </Button>
-              </Card>
-            ))}
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        {plan.features.map((feature, index) => (
+                          <li key={index} className="flex items-start">
+                            <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                            <span className="text-left">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

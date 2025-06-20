@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
+import {
   Upload,
   Building,
   User,
@@ -15,13 +14,17 @@ import {
   FileText,
   CheckCircle,
   ArrowRight,
-  Camera
+  Camera,
+  AlertCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { authService } from "@/lib/auth";
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     // Business Info
     companyName: "",
@@ -30,47 +33,147 @@ const Onboarding = () => {
     phone: "",
     website: "",
     description: "",
-    logo: null,
-    
+    logo: null as File | null,
+
     // Document Upload
-    pricingDocument: null
+    pricingDocument: null as File | null,
   });
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
+    if (error) setError("");
   };
 
-  const handleFileUpload = (e, type) => {
-    const file = e.target.files[0];
-    setFormData(prev => ({
-      ...prev,
-      [type]: file
-    }));
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "logo" | "pricingDocument"
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        [type]: file,
+      }));
+    }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < 3) {
+      // Validate required fields for step 1
+      if (currentStep === 1) {
+        const requiredFields = ["companyName", "ownerName", "email", "phone"];
+        const missingFields = requiredFields.filter(
+          (field) => !formData[field as keyof typeof formData]
+        );
+
+        if (missingFields.length > 0) {
+          setError("Please fill in all required fields");
+          return;
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          setError("Please enter a valid email address");
+          return;
+        }
+      }
+
       setCurrentStep(currentStep + 1);
+      setError("");
     } else {
-      // Complete onboarding and navigate to dashboard
-      navigate('/dashboard');
+      // Complete onboarding
+      await handleComplete();
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      setError("");
+    }
+  };
+
+  const handleComplete = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      let logoUrl = "";
+      let pricingDocumentUrl = "";
+
+      // Upload logo if provided
+      if (formData.logo) {
+        const logoResult = await authService.uploadFile(formData.logo, "logo");
+        if (logoResult.error) {
+          setError(logoResult.error);
+          setLoading(false);
+          return;
+        }
+        logoUrl = logoResult.url || "";
+      }
+
+      // Upload pricing document if provided
+      if (formData.pricingDocument) {
+        const docResult = await authService.uploadFile(
+          formData.pricingDocument,
+          "document"
+        );
+        if (docResult.error) {
+          setError(docResult.error);
+          setLoading(false);
+          return;
+        }
+        pricingDocumentUrl = docResult.url || "";
+      }
+
+      // Complete onboarding with all data
+      const result = await authService.completeOnboarding({
+        companyName: formData.companyName,
+        ownerName: formData.ownerName,
+        email: formData.email,
+        phone: formData.phone,
+        website: formData.website,
+        description: formData.description,
+        logoUrl,
+        pricingDocumentUrl,
+        selectedPlan: "professional",
+      });
+
+      if (result.error) {
+        setError(result.error);
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const steps = [
-    { number: 1, title: "Business Information", description: "Tell us about your company" },
-    { number: 2, title: "Upload Pricing Document", description: "Train our AI with your pricing" },
-    { number: 3, title: "Setup Complete", description: "You're ready to start!" }
+    {
+      number: 1,
+      title: "Business Information",
+      description: "Tell us about your company",
+    },
+    {
+      number: 2,
+      title: "Upload Pricing Document",
+      description: "Train our AI with your pricing",
+    },
+    {
+      number: 3,
+      title: "Setup Complete",
+      description: "You're ready to start!",
+    },
   ];
 
   return (
@@ -85,9 +188,7 @@ const Onboarding = () => {
               </div>
               <span className="text-xl font-bold gradient-text">NailedIt</span>
             </div>
-            <div className="text-sm text-gray-600">
-              Step {currentStep} of 3
-            </div>
+            <div className="text-sm text-gray-600">Step {currentStep} of 3</div>
           </div>
         </div>
       </div>
@@ -100,11 +201,13 @@ const Onboarding = () => {
               {steps.map((step, index) => (
                 <div key={step.number} className="flex items-center">
                   <div className="flex flex-col items-center">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                      currentStep >= step.number 
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 border-blue-600 text-white' 
-                        : 'bg-white border-gray-300 text-gray-400'
-                    }`}>
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                        currentStep >= step.number
+                          ? "bg-gradient-to-r from-blue-600 to-blue-700 border-blue-600 text-white"
+                          : "bg-white border-gray-300 text-gray-400"
+                      }`}
+                    >
                       {currentStep > step.number ? (
                         <CheckCircle className="w-6 h-6" />
                       ) : (
@@ -112,9 +215,13 @@ const Onboarding = () => {
                       )}
                     </div>
                     <div className="mt-2 text-center">
-                      <div className={`text-sm font-medium ${
-                        currentStep >= step.number ? 'text-blue-600' : 'text-gray-500'
-                      }`}>
+                      <div
+                        className={`text-sm font-medium ${
+                          currentStep >= step.number
+                            ? "text-blue-600"
+                            : "text-gray-500"
+                        }`}
+                      >
                         {step.title}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
@@ -123,9 +230,13 @@ const Onboarding = () => {
                     </div>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className={`w-24 h-0.5 mx-4 transition-all duration-300 ${
-                      currentStep > step.number ? 'bg-blue-600' : 'bg-gray-300'
-                    }`} />
+                    <div
+                      className={`w-24 h-0.5 mx-4 transition-all duration-300 ${
+                        currentStep > step.number
+                          ? "bg-blue-600"
+                          : "bg-gray-300"
+                      }`}
+                    />
                   )}
                 </div>
               ))}
@@ -134,12 +245,24 @@ const Onboarding = () => {
 
           {/* Step Content */}
           <Card className="glass p-8 animate-fade-in">
+            {/* Error Alert */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
+
             {currentStep === 1 && (
               <div>
                 <div className="text-center mb-8">
                   <Building className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Business Information</h2>
-                  <p className="text-gray-600">Let's set up your company profile</p>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Business Information
+                  </h2>
+                  <p className="text-gray-600">
+                    Let's set up your company profile
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -245,7 +368,7 @@ const Onboarding = () => {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => handleFileUpload(e, 'logo')}
+                          onChange={(e) => handleFileUpload(e, "logo")}
                           className="hidden"
                           id="logo-upload"
                         />
@@ -253,7 +376,9 @@ const Onboarding = () => {
                           <div className="text-center">
                             <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                             <div className="text-sm text-gray-600">
-                              {formData.logo ? formData.logo.name : "Click to upload your company logo"}
+                              {formData.logo
+                                ? formData.logo.name
+                                : "Click to upload your company logo"}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
                               PNG, JPG up to 2MB
@@ -271,9 +396,12 @@ const Onboarding = () => {
               <div>
                 <div className="text-center mb-8">
                   <FileText className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Pricing Document</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Upload Pricing Document
+                  </h2>
                   <p className="text-gray-600">
-                    Upload your pricing guide so our AI can learn your business model and generate accurate quotes
+                    Upload your pricing guide so our AI can learn your business
+                    model and generate accurate quotes
                   </p>
                 </div>
 
@@ -282,7 +410,7 @@ const Onboarding = () => {
                     <input
                       type="file"
                       accept=".pdf,.doc,.docx,.txt"
-                      onChange={(e) => handleFileUpload(e, 'pricingDocument')}
+                      onChange={(e) => handleFileUpload(e, "pricingDocument")}
                       className="hidden"
                       id="document-upload"
                     />
@@ -290,7 +418,9 @@ const Onboarding = () => {
                       <div className="text-center">
                         <Upload className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                         <div className="text-lg font-medium text-gray-900 mb-2">
-                          {formData.pricingDocument ? formData.pricingDocument.name : "Drop your pricing document here"}
+                          {formData.pricingDocument
+                            ? formData.pricingDocument.name
+                            : "Drop your pricing document here"}
                         </div>
                         <div className="text-sm text-gray-600 mb-4">
                           or click to browse files
@@ -311,7 +441,8 @@ const Onboarding = () => {
                             {formData.pricingDocument.name}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {Math.round(formData.pricingDocument.size / 1024)} KB
+                            {Math.round(formData.pricingDocument.size / 1024)}{" "}
+                            KB
                           </div>
                         </div>
                         <CheckCircle className="w-5 h-5 text-green-500" />
@@ -320,9 +451,14 @@ const Onboarding = () => {
                   )}
 
                   <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <h4 className="text-sm font-medium text-blue-900 mb-2">💡 Tips for best results:</h4>
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">
+                      💡 Tips for best results:
+                    </h4>
                     <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• Include your standard pricing for different fence types</li>
+                      <li>
+                        • Include your standard pricing for different fence
+                        types
+                      </li>
                       <li>• Add material costs and labor rates</li>
                       <li>• Include any special pricing or discounts</li>
                       <li>• Mention common add-ons and their costs</li>
@@ -337,25 +473,33 @@ const Onboarding = () => {
                 <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-8 h-8 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Setup Complete!</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  Setup Complete!
+                </h2>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  Your AI is now being trained on your pricing document. 
-                  You can start generating professional quotes immediately!
+                  Your AI is now being trained on your pricing document. You can
+                  start generating professional quotes immediately!
                 </p>
 
                 <Card className="glass-card p-6 max-w-md mx-auto mb-8">
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-gray-700">Business profile created</span>
+                      <span className="text-sm text-gray-700">
+                        Business profile created
+                      </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-gray-700">Pricing document uploaded</span>
+                      <span className="text-sm text-gray-700">
+                        Pricing document uploaded
+                      </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-gray-700">AI training in progress</span>
+                      <span className="text-sm text-gray-700">
+                        AI training in progress
+                      </span>
                     </div>
                   </div>
                 </Card>
@@ -364,21 +508,32 @@ const Onboarding = () => {
 
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-8">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={handleBack}
-                disabled={currentStep === 1}
+                disabled={currentStep === 1 || loading}
                 className="glass-card border-0"
               >
                 Back
               </Button>
 
-              <Button 
+              <Button
                 onClick={handleNext}
-                disabled={currentStep === 1 && (!formData.companyName || !formData.ownerName || !formData.email || !formData.phone)}
+                disabled={
+                  loading ||
+                  (currentStep === 1 &&
+                    (!formData.companyName ||
+                      !formData.ownerName ||
+                      !formData.email ||
+                      !formData.phone))
+                }
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white glass-button"
               >
-                {currentStep === 3 ? 'Go to Dashboard' : 'Continue'}
+                {loading
+                  ? "Processing..."
+                  : currentStep === 3
+                  ? "Go to Dashboard"
+                  : "Continue"}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </div>
