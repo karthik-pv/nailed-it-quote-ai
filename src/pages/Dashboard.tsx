@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,6 +20,7 @@ import {
   User
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import AIGuide from "@/components/AIGuide";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -327,6 +327,9 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
+
+      {/* AI Guide */}
+      <AIGuide />
     </div>
   );
 };

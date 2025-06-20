@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -123,7 +122,7 @@ const Index = () => {
             <Button 
               size="lg" 
               onClick={() => navigate('/signup')}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-4 text-lg font-semibold shadow-2xl hover:shadow-blue-500/25 hover:scale-105 transition-all duration-300 group"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-12 py-4 text-lg font-semibold shadow-2xl hover:scale-105 transition-all duration-300 group"
             >
               Get Started Free
               <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" />

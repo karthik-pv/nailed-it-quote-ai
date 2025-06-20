@@ -11,9 +11,9 @@ import {
   FileText,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  ArrowLeft
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 const Quotes = () => {
   const navigate = useNavigate();
@@ -74,9 +74,19 @@ const Quotes = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Quotes</h1>
-              <p className="text-gray-600">Manage and track all your quotes</p>
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/dashboard')}
+                className="glass-button"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Quotes</h1>
+                <p className="text-gray-600">Manage and track all your quotes</p>
+              </div>
             </div>
             <Button 
               className="bg-gradient-to-r from-blue-600 to-blue-700 text-white glass-button"
