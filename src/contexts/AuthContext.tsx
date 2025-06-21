@@ -11,10 +11,12 @@ interface AuthContextType {
   signup: (
     email: string,
     password: string,
-    fullName?: string
+    fullName: string
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  needsOnboarding: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,10 +37,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     // Initialize auth state
-    const initializeAuth = () => {
-      const currentUser = authService.getCurrentUser();
-      setUser(currentUser);
-      setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        // Check if user is stored locally
+        const currentUser = authService.getCurrentUser();
+        if (currentUser && authService.getToken()) {
+          // Try to refresh user data from API
+          const refreshedUser = await authService.getCurrentUserFromAPI();
+          if (refreshedUser) {
+            setUser(refreshedUser);
+          } else {
+            // Token might be expired, use local data
+            setUser(currentUser);
+          }
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        // Clear invalid auth state
+        await authService.logout();
+      } finally {
+        setLoading(false);
+      }
     };
 
     initializeAuth();
@@ -47,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (email: string, password: string) => {
     try {
       const result = await authService.login({ email, password });
-      if (result.user) {
+      if (result.user && !result.error) {
         setUser(result.user);
         return { success: true };
       } else {
@@ -58,10 +77,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const signup = async (email: string, password: string, fullName?: string) => {
+  const signup = async (email: string, password: string, fullName: string) => {
     try {
-      const result = await authService.signup({ email, password, fullName });
-      if (result.user) {
+      const result = await authService.signup({
+        email,
+        password,
+        full_name: fullName,
+      });
+      if (result.user && !result.error) {
         setUser(result.user);
         return { success: true };
       } else {
@@ -77,6 +100,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUser(null);
   };
 
+  const refreshUser = async () => {
+    try {
+      const refreshedUser = await authService.getCurrentUserFromAPI();
+      if (refreshedUser) {
+        setUser(refreshedUser);
+      }
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -84,6 +118,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     signup,
     logout,
     isAuthenticated: !!user,
+    needsOnboarding: !!user && !user.company_id,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

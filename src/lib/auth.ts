@@ -1,17 +1,37 @@
-import { API_CONFIG, buildApiUrl } from "./config";
+import { API_CONFIG, ENDPOINTS, buildApiUrl } from "./config";
 
 export interface User {
   id: string;
   email: string;
-  full_name?: string;
-  created_at: string;
+  full_name: string;
   company_id?: string;
-  onboarding_completed?: boolean;
+  role?: string;
+  created_at: string;
+  updated_at?: string;
+  company?: {
+    id: string;
+    company_name: string;
+    owner_name: string;
+    email: string;
+    phone: string;
+    website?: string;
+    description?: string;
+    logo_url?: string;
+    pricing_document_url?: string;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface AuthResponse {
   user: User | null;
-  session?: any;
+  session?: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+    expires_in: number;
+    token_type: string;
+  };
   error?: string;
 }
 
@@ -23,20 +43,18 @@ export interface LoginCredentials {
 export interface SignupCredentials {
   email: string;
   password: string;
-  fullName?: string;
+  full_name: string;
 }
 
 export interface CompanyOnboardingData {
-  companyName: string;
-  ownerName: string;
+  company_name: string;
+  owner_name: string;
   email: string;
   phone: string;
   website?: string;
   description?: string;
-  logoUrl?: string;
-  pricingDocumentUrl?: string;
-  selectedPlan?: string;
-  planDetails?: any;
+  logo_url?: string;
+  pricing_document_url?: string;
 }
 
 class AuthService {
@@ -45,14 +63,14 @@ class AuthService {
 
   constructor() {
     // Initialize from localStorage if available
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("nailedit_user");
+    const storedToken = localStorage.getItem("nailedit_token");
 
     if (storedUser) {
       try {
         this.user = JSON.parse(storedUser);
       } catch (e) {
-        localStorage.removeItem("user");
+        localStorage.removeItem("nailedit_user");
       }
     }
 
@@ -63,86 +81,102 @@ class AuthService {
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.LOGIN), {
+      const response = await fetch(buildApiUrl(ENDPOINTS.LOGIN), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify(credentials),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed");
+        return {
+          user: null,
+          error: data.error || "Login failed",
+        };
       }
 
-      // Handle successful login
+      // Handle successful login - backend returns { message, user }
       if (data.user) {
-        this.user = data.user;
-        this.token = data.session?.access_token || data.access_token;
+        this.user = data.user.user || data.user; // Handle nested user object
+        this.token =
+          data.user.session?.access_token || data.session?.access_token;
 
         // Store in localStorage
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("nailedit_user", JSON.stringify(this.user));
         if (this.token) {
-          localStorage.setItem("token", this.token);
+          localStorage.setItem("nailedit_token", this.token);
         }
+
+        return {
+          user: this.user,
+          session: data.user.session || data.session,
+        };
       }
 
       return {
-        user: data.user,
-        session: data.session,
+        user: null,
+        error: "Invalid response from server",
       };
     } catch (error) {
       console.error("Login error:", error);
       return {
         user: null,
-        session: null,
-        error: error instanceof Error ? error.message : "Login failed",
+        error:
+          error instanceof Error ? error.message : "Network error occurred",
       };
     }
   }
 
   async signup(credentials: SignupCredentials): Promise<AuthResponse> {
     try {
-      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.SIGNUP), {
+      const response = await fetch(buildApiUrl(ENDPOINTS.SIGNUP), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify(credentials),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Signup failed");
+        return {
+          user: null,
+          error: data.error || "Signup failed",
+        };
       }
 
-      // Handle successful signup
+      // Handle successful signup - backend returns { message, user }
       if (data.user) {
-        this.user = data.user;
-        this.token = data.session?.access_token || data.access_token;
+        this.user = data.user.user || data.user; // Handle nested user object
+        this.token =
+          data.user.session?.access_token || data.session?.access_token;
 
         // Store in localStorage
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("nailedit_user", JSON.stringify(this.user));
         if (this.token) {
-          localStorage.setItem("token", this.token);
+          localStorage.setItem("nailedit_token", this.token);
         }
+
+        return {
+          user: this.user,
+          session: data.user.session || data.session,
+        };
       }
 
       return {
-        user: data.user,
-        session: data.session,
+        user: null,
+        error: "Invalid response from server",
       };
     } catch (error) {
       console.error("Signup error:", error);
       return {
         user: null,
-        session: null,
-        error: error instanceof Error ? error.message : "Signup failed",
+        error:
+          error instanceof Error ? error.message : "Network error occurred",
       };
     }
   }
@@ -151,80 +185,98 @@ class AuthService {
     companyData: CompanyOnboardingData
   ): Promise<AuthResponse> {
     try {
-      const response = await fetch(
-        buildApiUrl(API_CONFIG.ENDPOINTS.COMPLETE_ONBOARDING),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(companyData),
-        }
-      );
+      if (!this.token) {
+        return {
+          user: null,
+          error: "Authentication required",
+        };
+      }
+
+      const response = await fetch(buildApiUrl(ENDPOINTS.COMPLETE_ONBOARDING), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.token}`,
+        },
+        body: JSON.stringify(companyData),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Onboarding failed");
+        return {
+          user: null,
+          error: data.error || "Onboarding failed",
+        };
       }
 
       // Update user data with company information
       if (data.user) {
         this.user = data.user;
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("nailedit_user", JSON.stringify(this.user));
       }
 
       return {
-        user: data.user,
+        user: this.user,
         session: data.session,
       };
     } catch (error) {
       console.error("Onboarding error:", error);
       return {
         user: null,
-        session: null,
-        error: error instanceof Error ? error.message : "Onboarding failed",
+        error:
+          error instanceof Error ? error.message : "Network error occurred",
       };
     }
   }
 
-  async skipOnboarding(): Promise<AuthResponse> {
+  async joinCompany(companyEmail: string): Promise<AuthResponse> {
     try {
-      const response = await fetch(
-        buildApiUrl(API_CONFIG.ENDPOINTS.SKIP_ONBOARDING),
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      if (!this.token) {
+        return {
+          user: null,
+          error: "Authentication required",
+        };
+      }
+
+      const response = await fetch(buildApiUrl(ENDPOINTS.JOIN_COMPANY), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.token}`,
+        },
+        body: JSON.stringify({ company_email: companyEmail }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to skip onboarding");
+        return {
+          user: null,
+          error: data.error || "Failed to join company",
+        };
       }
 
       // Update user data
-      if (data.user) {
-        this.user = data.user;
-        localStorage.setItem("user", JSON.stringify(data.user));
+      if (data.company) {
+        // Refresh user data
+        const userResult = await this.getCurrentUserFromAPI();
+        if (userResult) {
+          this.user = userResult;
+          localStorage.setItem("nailedit_user", JSON.stringify(this.user));
+        }
       }
 
       return {
-        user: data.user,
-        session: null,
+        user: this.user,
+        session: data.session,
       };
     } catch (error) {
-      console.error("Skip onboarding error:", error);
+      console.error("Join company error:", error);
       return {
-        user: this.user,
-        session: null,
+        user: null,
         error:
-          error instanceof Error ? error.message : "Failed to skip onboarding",
+          error instanceof Error ? error.message : "Network error occurred",
       };
     }
   }
@@ -234,71 +286,85 @@ class AuthService {
     fileType: string = "document"
   ): Promise<{ url?: string; error?: string }> {
     try {
+      if (!this.token) {
+        return { error: "Authentication required" };
+      }
+
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("type", fileType);
 
-      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.UPLOAD), {
+      const endpoint =
+        fileType === "logo" ? ENDPOINTS.UPLOAD_LOGO : ENDPOINTS.UPLOAD_DOCUMENT;
+
+      const response = await fetch(buildApiUrl(endpoint), {
         method: "POST",
-        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
         body: formData,
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "File upload failed");
+        return { error: data.error || "File upload failed" };
       }
 
       return { url: data.url };
     } catch (error) {
       console.error("File upload error:", error);
       return {
-        error: error instanceof Error ? error.message : "File upload failed",
+        error: error instanceof Error ? error.message : "Upload failed",
       };
     }
   }
 
   async logout(): Promise<void> {
     try {
-      await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.LOGOUT), {
-        method: "POST",
-        credentials: "include",
-      });
+      if (this.token) {
+        await fetch(buildApiUrl(ENDPOINTS.LOGOUT), {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+      }
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
       // Clear local state regardless of API call success
       this.user = null;
       this.token = null;
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
+      localStorage.removeItem("nailedit_user");
+      localStorage.removeItem("nailedit_token");
     }
   }
 
   async getCurrentUserFromAPI(): Promise<User | null> {
     try {
-      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.USER), {
+      if (!this.token) {
+        return null;
+      }
+
+      const response = await fetch(buildApiUrl(ENDPOINTS.USER), {
         method: "GET",
-        credentials: "include",
         headers: {
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.token}`,
         },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.user) {
-          this.user = data.user;
-          localStorage.setItem("user", JSON.stringify(data.user));
-          return data.user;
-        }
+      if (!response.ok) {
+        // Token might be expired, clear local storage
+        this.logout();
+        return null;
       }
+
+      const data = await response.json();
+      return data.user || null;
     } catch (error) {
       console.error("Get current user error:", error);
+      return null;
     }
-
-    return null;
   }
 
   getCurrentUser(): User | null {
@@ -310,30 +376,25 @@ class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.user;
+    return !!this.user && !!this.token;
   }
 
   needsOnboarding(): boolean {
-    return this.user ? !this.user.onboarding_completed : false;
+    return this.isAuthenticated() && !this.user?.company_id;
   }
 
   hasCompany(): boolean {
-    return this.user ? !!this.user.company_id : false;
+    return !!this.user?.company_id;
   }
 
-  // Helper method for authenticated API calls
   async fetchWithAuth(
     url: string,
     options: RequestInit = {}
   ): Promise<Response> {
     const headers = {
-      "Content-Type": "application/json",
       ...options.headers,
+      Authorization: `Bearer ${this.token}`,
     };
-
-    if (this.token) {
-      headers["Authorization"] = `Bearer ${this.token}`;
-    }
 
     return fetch(url, {
       ...options,

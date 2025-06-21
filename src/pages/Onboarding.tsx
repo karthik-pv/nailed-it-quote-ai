@@ -19,24 +19,26 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { refreshUser, user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
   const [formData, setFormData] = useState({
     // Business Info
-    companyName: "",
-    ownerName: "",
-    email: "",
+    company_name: "",
+    owner_name: user?.full_name || "",
+    email: user?.email || "",
     phone: "",
     website: "",
     description: "",
-    logo: null as File | null,
-
-    // Document Upload
-    pricingDocument: null as File | null,
+    logo_url: "",
+    pricing_document_url: "",
   });
 
   const handleInputChange = (
@@ -50,16 +52,34 @@ const Onboarding = () => {
     if (error) setError("");
   };
 
-  const handleFileUpload = (
+  const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "logo" | "pricingDocument"
+    type: "logo" | "document"
   ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        [type]: file,
-      }));
+    if (!file) return;
+
+    const isLogo = type === "logo";
+    const setUploading = isLogo ? setUploadingLogo : setUploadingDocument;
+
+    setUploading(true);
+    setError("");
+
+    try {
+      const result = await authService.uploadFile(file, type);
+
+      if (result.error) {
+        setError(result.error);
+      } else if (result.url) {
+        setFormData((prev) => ({
+          ...prev,
+          [isLogo ? "logo_url" : "pricing_document_url"]: result.url,
+        }));
+      }
+    } catch (err) {
+      setError("File upload failed. Please try again.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -67,7 +87,7 @@ const Onboarding = () => {
     if (currentStep < 3) {
       // Validate required fields for step 1
       if (currentStep === 1) {
-        const requiredFields = ["companyName", "ownerName", "email", "phone"];
+        const requiredFields = ["company_name", "owner_name", "email", "phone"];
         const missingFields = requiredFields.filter(
           (field) => !formData[field as keyof typeof formData]
         );
@@ -105,54 +125,43 @@ const Onboarding = () => {
     setError("");
 
     try {
-      let logoUrl = "";
-      let pricingDocumentUrl = "";
-
-      // Upload logo if provided
-      if (formData.logo) {
-        const logoResult = await authService.uploadFile(formData.logo, "logo");
-        if (logoResult.error) {
-          setError(logoResult.error);
-          setLoading(false);
-          return;
-        }
-        logoUrl = logoResult.url || "";
-      }
-
-      // Upload pricing document if provided
-      if (formData.pricingDocument) {
-        const docResult = await authService.uploadFile(
-          formData.pricingDocument,
-          "document"
-        );
-        if (docResult.error) {
-          setError(docResult.error);
-          setLoading(false);
-          return;
-        }
-        pricingDocumentUrl = docResult.url || "";
-      }
-
-      // Complete onboarding with all data
-      const result = await authService.completeOnboarding({
-        companyName: formData.companyName,
-        ownerName: formData.ownerName,
-        email: formData.email,
-        phone: formData.phone,
-        website: formData.website,
-        description: formData.description,
-        logoUrl,
-        pricingDocumentUrl,
-        selectedPlan: "professional",
-      });
+      const result = await authService.completeOnboarding(formData);
 
       if (result.error) {
         setError(result.error);
       } else {
+        // Refresh user data to get updated company info
+        await refreshUser();
         navigate("/dashboard");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJoinExisting = async () => {
+    if (!formData.email) {
+      setError("Please enter the company email address");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await authService.joinCompany(formData.email);
+
+      if (result.error) {
+        setError(result.error);
+      } else {
+        // Refresh user data to get updated company info
+        await refreshUser();
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setError("Failed to join company. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -166,8 +175,8 @@ const Onboarding = () => {
     },
     {
       number: 2,
-      title: "Upload Pricing Document",
-      description: "Train our AI with your pricing",
+      title: "Upload Files",
+      description: "Add your logo and pricing document",
     },
     {
       number: 3,
@@ -200,140 +209,153 @@ const Onboarding = () => {
             <div className="flex items-center justify-center space-x-8">
               {steps.map((step, index) => (
                 <div key={step.number} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                        currentStep >= step.number
-                          ? "bg-gradient-to-r from-blue-600 to-blue-700 border-blue-600 text-white"
-                          : "bg-white border-gray-300 text-gray-400"
-                      }`}
-                    >
-                      {currentStep > step.number ? (
-                        <CheckCircle className="w-6 h-6" />
-                      ) : (
-                        <span className="font-bold">{step.number}</span>
-                      )}
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                      currentStep >= step.number
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
+                    {currentStep > step.number ? (
+                      <CheckCircle className="w-6 h-6" />
+                    ) : (
+                      <span className="font-semibold">{step.number}</span>
+                    )}
+                  </div>
+                  <div className="ml-4 hidden sm:block">
+                    <div className="text-sm font-medium text-gray-900">
+                      {step.title}
                     </div>
-                    <div className="mt-2 text-center">
-                      <div
-                        className={`text-sm font-medium ${
-                          currentStep >= step.number
-                            ? "text-blue-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {step.title}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {step.description}
-                      </div>
+                    <div className="text-sm text-gray-500">
+                      {step.description}
                     </div>
                   </div>
                   {index < steps.length - 1 && (
-                    <div
-                      className={`w-24 h-0.5 mx-4 transition-all duration-300 ${
-                        currentStep > step.number
-                          ? "bg-blue-600"
-                          : "bg-gray-300"
-                      }`}
-                    />
+                    <div className="hidden sm:block w-16 h-0.5 bg-gray-200 ml-8" />
                   )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Step Content */}
-          <Card className="glass p-8 animate-fade-in">
-            {/* Error Alert */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
+          {/* Error Alert */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 max-w-2xl mx-auto">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
 
+          {/* Step Content */}
+          <div className="max-w-2xl mx-auto">
             {currentStep === 1 && (
-              <div>
+              <Card className="glass p-8 animate-fade-in">
                 <div className="text-center mb-8">
                   <Building className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Business Information
+                    Tell us about your business
                   </h2>
                   <p className="text-gray-600">
-                    Let's set up your company profile
+                    We'll use this information to personalize your experience
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-6">
                   <div>
-                    <Label htmlFor="companyName">Company Name *</Label>
+                    <Label
+                      htmlFor="company_name"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Company Name *
+                    </Label>
                     <div className="mt-1 relative">
                       <Input
-                        id="companyName"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleInputChange}
-                        placeholder="Your Fencing Company LLC"
-                        className="glass-card border-0 pl-10"
+                        id="company_name"
+                        name="company_name"
+                        type="text"
                         required
+                        value={formData.company_name}
+                        onChange={handleInputChange}
+                        placeholder="Your Company Name"
+                        className="glass-card border-0 pl-10 pr-4 py-3"
                       />
                       <Building className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="ownerName">Owner Name *</Label>
+                    <Label
+                      htmlFor="owner_name"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Owner Name *
+                    </Label>
                     <div className="mt-1 relative">
                       <Input
-                        id="ownerName"
-                        name="ownerName"
-                        value={formData.ownerName}
-                        onChange={handleInputChange}
-                        placeholder="John Smith"
-                        className="glass-card border-0 pl-10"
+                        id="owner_name"
+                        name="owner_name"
+                        type="text"
                         required
+                        value={formData.owner_name}
+                        onChange={handleInputChange}
+                        placeholder="Your Full Name"
+                        className="glass-card border-0 pl-10 pr-4 py-3"
                       />
                       <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="email">Business Email *</Label>
+                    <Label
+                      htmlFor="email"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Business Email *
+                    </Label>
                     <div className="mt-1 relative">
                       <Input
                         id="email"
                         name="email"
                         type="email"
+                        required
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="contact@yourcompany.com"
-                        className="glass-card border-0 pl-10"
-                        required
+                        className="glass-card border-0 pl-10 pr-4 py-3"
                       />
                       <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Label
+                      htmlFor="phone"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Phone Number *
+                    </Label>
                     <div className="mt-1 relative">
                       <Input
                         id="phone"
                         name="phone"
                         type="tel"
+                        required
                         value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="+1 (555) 123-4567"
-                        className="glass-card border-0 pl-10"
-                        required
+                        className="glass-card border-0 pl-10 pr-4 py-3"
                       />
                       <Phone className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     </div>
                   </div>
 
-                  <div className="md:col-span-2">
-                    <Label htmlFor="website">Website (Optional)</Label>
+                  <div>
+                    <Label
+                      htmlFor="website"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Website (Optional)
+                    </Label>
                     <div className="mt-1 relative">
                       <Input
                         id="website"
@@ -341,203 +363,263 @@ const Onboarding = () => {
                         type="url"
                         value={formData.website}
                         onChange={handleInputChange}
-                        placeholder="https://www.yourcompany.com"
-                        className="glass-card border-0 pl-10"
+                        placeholder="https://yourcompany.com"
+                        className="glass-card border-0 pl-10 pr-4 py-3"
                       />
                       <Globe className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     </div>
                   </div>
 
-                  <div className="md:col-span-2">
-                    <Label htmlFor="description">Company Description</Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      placeholder="Tell us about your fencing business, services offered, and specializations..."
-                      className="glass-card border-0 mt-1"
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <Label>Company Logo (Optional)</Label>
+                  <div>
+                    <Label
+                      htmlFor="description"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Business Description (Optional)
+                    </Label>
                     <div className="mt-1">
-                      <div className="glass-card p-6 border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload(e, "logo")}
-                          className="hidden"
-                          id="logo-upload"
-                        />
-                        <label htmlFor="logo-upload" className="cursor-pointer">
-                          <div className="text-center">
-                            <Camera className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                            <div className="text-sm text-gray-600">
-                              {formData.logo
-                                ? formData.logo.name
-                                : "Click to upload your company logo"}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              PNG, JPG up to 2MB
-                            </div>
-                          </div>
-                        </label>
-                      </div>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        placeholder="Tell us about your business and the services you provide..."
+                        className="glass-card border-0 p-3"
+                        rows={4}
+                      />
                     </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Join Existing Company Option */}
+                <div className="mt-8 p-6 bg-blue-50 rounded-lg">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Already part of a company?
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    If your company is already using NailedIt, you can join them
+                    instead.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleJoinExisting}
+                    disabled={loading || !formData.email}
+                    className="w-full"
+                  >
+                    {loading ? "Joining..." : "Join Existing Company"}
+                  </Button>
+                </div>
+              </Card>
             )}
 
             {currentStep === 2 && (
-              <div>
+              <Card className="glass p-8 animate-fade-in">
                 <div className="text-center mb-8">
-                  <FileText className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                  <Upload className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Upload Pricing Document
+                    Upload Your Files
                   </h2>
                   <p className="text-gray-600">
-                    Upload your pricing guide so our AI can learn your business
-                    model and generate accurate quotes
+                    Add your company logo and pricing document to get started
                   </p>
                 </div>
 
-                <div className="max-w-lg mx-auto">
-                  <div className="glass-card p-8 border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer">
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx,.txt"
-                      onChange={(e) => handleFileUpload(e, "pricingDocument")}
-                      className="hidden"
-                      id="document-upload"
-                    />
-                    <label htmlFor="document-upload" className="cursor-pointer">
-                      <div className="text-center">
-                        <Upload className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                        <div className="text-lg font-medium text-gray-900 mb-2">
-                          {formData.pricingDocument
-                            ? formData.pricingDocument.name
-                            : "Drop your pricing document here"}
+                <div className="space-y-8">
+                  {/* Logo Upload */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-4 block">
+                      Company Logo (Optional)
+                    </Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                      {formData.logo_url ? (
+                        <div className="space-y-4">
+                          <img
+                            src={formData.logo_url}
+                            alt="Company Logo"
+                            className="w-24 h-24 object-contain mx-auto rounded-lg"
+                          />
+                          <p className="text-sm text-green-600">
+                            Logo uploaded successfully!
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setFormData((prev) => ({ ...prev, logo_url: "" }))
+                            }
+                          >
+                            Remove
+                          </Button>
                         </div>
-                        <div className="text-sm text-gray-600 mb-4">
-                          or click to browse files
+                      ) : (
+                        <div className="space-y-4">
+                          <Camera className="w-12 h-12 text-gray-400 mx-auto" />
+                          <div>
+                            <p className="text-sm text-gray-600 mb-2">
+                              Upload your company logo
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              PNG, JPG, GIF up to 5MB
+                            </p>
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "logo")}
+                            className="hidden"
+                            id="logo-upload"
+                            disabled={uploadingLogo}
+                          />
+                          <label htmlFor="logo-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={uploadingLogo}
+                              asChild
+                            >
+                              <span>
+                                {uploadingLogo ? "Uploading..." : "Choose File"}
+                              </span>
+                            </Button>
+                          </label>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          Supported formats: PDF, DOC, DOCX, TXT (Max 10MB)
-                        </div>
-                      </div>
-                    </label>
+                      )}
+                    </div>
                   </div>
 
-                  {formData.pricingDocument && (
-                    <Card className="glass-card p-4 mt-4">
-                      <div className="flex items-center space-x-3">
-                        <FileText className="w-6 h-6 text-blue-600" />
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">
-                            {formData.pricingDocument.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {Math.round(formData.pricingDocument.size / 1024)}{" "}
-                            KB
-                          </div>
+                  {/* Pricing Document Upload */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-4 block">
+                      Pricing Document (Optional)
+                    </Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                      {formData.pricing_document_url ? (
+                        <div className="space-y-4">
+                          <FileText className="w-12 h-12 text-green-600 mx-auto" />
+                          <p className="text-sm text-green-600">
+                            Document uploaded successfully!
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                pricing_document_url: "",
+                              }))
+                            }
+                          >
+                            Remove
+                          </Button>
                         </div>
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                      </div>
-                    </Card>
-                  )}
-
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <h4 className="text-sm font-medium text-blue-900 mb-2">
-                      💡 Tips for best results:
-                    </h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>
-                        • Include your standard pricing for different fence
-                        types
-                      </li>
-                      <li>• Add material costs and labor rates</li>
-                      <li>• Include any special pricing or discounts</li>
-                      <li>• Mention common add-ons and their costs</li>
-                    </ul>
+                      ) : (
+                        <div className="space-y-4">
+                          <FileText className="w-12 h-12 text-gray-400 mx-auto" />
+                          <div>
+                            <p className="text-sm text-gray-600 mb-2">
+                              Upload your pricing document
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              PDF, DOC, DOCX, XLS, XLSX up to 10MB
+                            </p>
+                          </div>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx"
+                            onChange={(e) => handleFileUpload(e, "document")}
+                            className="hidden"
+                            id="document-upload"
+                            disabled={uploadingDocument}
+                          />
+                          <label htmlFor="document-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={uploadingDocument}
+                              asChild
+                            >
+                              <span>
+                                {uploadingDocument
+                                  ? "Uploading..."
+                                  : "Choose File"}
+                              </span>
+                            </Button>
+                          </label>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Card>
             )}
 
             {currentStep === 3 && (
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="w-8 h-8 text-white" />
-                </div>
+              <Card className="glass p-8 animate-fade-in text-center">
+                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-6" />
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Setup Complete!
+                  You're All Set!
                 </h2>
-                <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  Your AI is now being trained on your pricing document. You can
-                  start generating professional quotes immediately!
+                <p className="text-gray-600 mb-8">
+                  Your account has been created and your business information
+                  has been saved. You can now start creating professional quotes
+                  with NailedIt.
                 </p>
 
-                <Card className="glass-card p-6 max-w-md mx-auto mb-8">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-gray-700">
-                        Business profile created
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-gray-700">
-                        Pricing document uploaded
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-sm text-gray-700">
-                        AI training in progress
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-              </div>
+                <div className="bg-blue-50 rounded-lg p-6 mb-8">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    What's Next?
+                  </h3>
+                  <ul className="text-sm text-gray-600 space-y-2">
+                    <li>• Explore your dashboard and settings</li>
+                    <li>• Create your first professional quote</li>
+                    <li>• Add team members to your company</li>
+                    <li>• Customize your quote templates</li>
+                  </ul>
+                </div>
+              </Card>
             )}
+          </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between mt-8 max-w-2xl mx-auto">
+            {currentStep > 1 && (
               <Button
+                type="button"
                 variant="outline"
                 onClick={handleBack}
-                disabled={currentStep === 1 || loading}
+                disabled={loading}
                 className="glass-card border-0"
               >
                 Back
               </Button>
+            )}
 
+            <div className="ml-auto">
               <Button
+                type="button"
                 onClick={handleNext}
-                disabled={
-                  loading ||
-                  (currentStep === 1 &&
-                    (!formData.companyName ||
-                      !formData.ownerName ||
-                      !formData.email ||
-                      !formData.phone))
-                }
+                disabled={loading || uploadingLogo || uploadingDocument}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white glass-button"
               >
-                {loading
-                  ? "Processing..."
-                  : currentStep === 3
-                  ? "Go to Dashboard"
-                  : "Continue"}
-                <ArrowRight className="ml-2 w-4 h-4" />
+                {loading ? (
+                  "Processing..."
+                ) : currentStep === 3 ? (
+                  <>
+                    Go to Dashboard
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
               </Button>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>
